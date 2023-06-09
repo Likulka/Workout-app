@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  email    String   @unique
+  name     String
+  password String
+  images   String[]
+
+  exerciseLog ExerciseLog[]
+  workoutLog  WorkoutLog[]
+}
+
+model Workout {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  name        String
+  exercises   Exercise[]   @relation("ExerciseToWorkout")
+  workoutLogs WorkoutLog[]
+}
+
+model Exercise {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  name     String
+  times    Int
+  iconPath String @map("icon_path")
+
+  workouts Workout[] @relation("ExerciseToWorkout")
+
+  exerciseLogs ExerciseLog[]
+}
+
+model ExerciseLog {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  isCompleted Boolean        @default(false) @map("is_completed")
+  times       ExerciseTime[]
+
+  user   User? @relation(fields: [userId], references: [id])
+  userId Int?  @map("user_id")
+
+  workoutLog   WorkoutLog? @relation(fields: [workoutLogId], references: [id])
+  workoutLogId Int?        @map("workout_log_id")
+
+  exercise   Exercise? @relation(fields: [exerciseId], references: [id])
+  exerciseId Int?      @map("exercise_id")
+
+  @@map("Exercise_log")
+}
+
+model ExerciseTime {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  isCompleted Boolean @default(false) @map("is_completed")
+  repeat      Int     @default(0)
+  weight      Int     @default(0)
+
+  exerciseLogId Int?         @map("exercise_log_id")
+  exerciseLog   ExerciseLog? @relation(fields: [exerciseLogId], references: [id])
+
+  @@map("Exercise_time")
+}
+
+model WorkoutLog {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  isCompleted Boolean @default(false) @map("is_completed")
+
+  exerciseLog ExerciseLog[]
+
+  user   User? @relation(fields: [userId], references: [id])
+  userId Int?  @map("user_id")
+
+  workout   Workout? @relation(fields: [workoutId], references: [id])
+  workoutId Int?     @map("workout_id")
+
+  @@map("Workout_log")
+}
